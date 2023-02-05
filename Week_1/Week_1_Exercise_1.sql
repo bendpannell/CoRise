@@ -1,5 +1,20 @@
+*****************************************
+Week 1 Exercise 1
+*****************************************;
+
+-- EDA on relevant tables
+select * from vk_data.customers.customer_data limit 100;
+select * from vk_data.customers.customer_address limit 100;
+select * from vk_data.resources.us_cities limit 100;
+select * from vk_data.suppliers.supplier_info limit 10;
+
+-- Query construction
+
+-- Update geography format in order to perform distance functions
 alter session set geography_output_format='WKT';
 
+-- Join customer data w/ address info and standardize city/state case for 
+-- later joins.
 with customer_address as (
     select
         data.customer_id,
@@ -14,6 +29,7 @@ with customer_address as (
         on data.customer_id = address.customer_id
 ),
 
+-- Standardize city/state case for later joins.
 supplier as (
     select 
         supplier_id,
@@ -23,6 +39,7 @@ supplier as (
     from vk_data.suppliers.supplier_info
 ),
 
+-- Standardize city/state case for later joins.
 city_data as (
     select distinct
         upper(city_name)        as city,
@@ -31,6 +48,8 @@ city_data as (
     from vk_data.resources.us_cities
 ),
 
+-- Join customer info on city data to get geography info for distance functions
+-- Trim city/state due to unwanted whitespace
 customers_city as (
     select
         customer_address.*,
@@ -42,6 +61,8 @@ customers_city as (
     and trim(customer_address.state) = trim(city_data.state)
 ),
 
+-- Join supplier info on city data to get geography info for distance functions
+-- Trim city/state due to unwanted whitespace
 suppliers_city as (
     select
         supplier.*,
@@ -52,6 +73,8 @@ suppliers_city as (
     and trim(supplier.state) = trim(city_data.state)
 ),
 
+-- Cross join customers and city info and calculate distance between each, 
+--  convert meters to miles.
 supplier_cross as (
     select
         customer_id,
@@ -68,6 +91,7 @@ supplier_cross as (
     cross join suppliers_city
 ),
 
+-- Final query to put everything together
 results as (
     select
         customer_id,
