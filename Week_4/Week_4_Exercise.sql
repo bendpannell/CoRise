@@ -101,7 +101,7 @@ part_breakdown as (
     inner join order_line_items as oli2
     	on oli.customer_key = oli2.customer_key
     inner join order_line_items as oli3
-    	on oli.customer_key = oli3.customer_key
+    	on oli2.customer_key = oli3.customer_key
     where oli.price_rank = 1
     and oli2.price_rank = 2
     and oli3.price_rank = 3
